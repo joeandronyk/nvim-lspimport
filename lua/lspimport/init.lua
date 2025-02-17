@@ -1,4 +1,5 @@
 local servers = require("lspimport.servers")
+local ui = require("lspimport.ui")
 
 local LspImport = {}
 
@@ -77,11 +78,6 @@ local resolve_import = function(item, bufnr)
     vim.lsp.util.apply_text_edits(text_edits, bufnr, "utf-8")
 end
 
----@param item any
-local format_import = function(item)
-    return item.abbr .. " " .. item.kind .. " " .. item.user_data.nvim.lsp.completion_item.labelDetails.description
-end
-
 ---@param server lspimport.Server
 ---@param result lsp.CompletionList|lsp.CompletionItem[] Result of `textDocument/completion`
 ---@param unresolved_import string
@@ -99,13 +95,9 @@ local lsp_completion_handler = function(server, result, unresolved_import, bufnr
     if #items == 1 then
         resolve_import(items[1], bufnr)
     else
-        vim.ui.select(
-            items,
-            { prompt = "Select Import For " .. unresolved_import, format_item = format_import },
-            function(item, _)
-                resolve_import(item, bufnr)
-            end
-        )
+        local item_texts = ui.create_items_text_with_header(items, unresolved_import)
+        ui.create_floating_window(item_texts)
+        ui.handle_floating_window_selection(items, bufnr, resolve_import)
     end
 end
 
@@ -125,7 +117,7 @@ local lsp_completion = function(diagnostic)
     end
     local server = servers.get_server(diagnostic)
     if server == nil then
-        vim.notify("cannot find server implemantion for lsp import")
+        vim.notify("cannot find server implementation for lsp import")
         return
     end
     local params = {
