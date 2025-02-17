@@ -36,11 +36,11 @@ end
 ---@param prefix string prefix to filter the completion items
 ---@return table[]
 local lsp_to_complete_items = function(result, prefix)
-    if vim.fn.has("nvim-0.10.0") == 1 then
-        -- TODO: use another function once it's available in public API.
-        -- See: https://neovim.io/doc/user/deprecated.html#vim.lsp.util.text_document_completion_list_to_complete_items()
-        return vim.lsp._completion._lsp_to_complete_items(result, prefix)
+    if vim.fn.has("nvim-0.11.0") == 1 then
+        -- Use the new function available in Neovim 0.11 and newer
+        return vim.lsp.completion._lsp_to_complete_items(result, prefix)
     else
+        -- Use the older function for Neovim versions prior to 0.11
         return require("vim.lsp.util").text_document_completion_list_to_complete_items(result, prefix)
     end
 end
